@@ -1,7 +1,6 @@
 /*************************************************************
  * Autor: Guillermo Vicente González
- * ***********************************************************/
-
+ ************************************************************/
 
 #include <ncurses.h>
 #include <stdlib.h>
@@ -9,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #define MAX_LEN 128
+#define DELAY 1000
 
 typedef struct posicion{
     int x;
@@ -19,6 +19,8 @@ void pruebaImprimir(WINDOW *win);
 void print_image(FILE *fptr);
 void recorrerMatrizNcurses(int x, int y,char **matriz, WINDOW *win);
 void juegoNcurses(char **matriz, int filas, int columnas, WINDOW *win);
+void cambiarCasillaNcurses(char **matriz, int x, int y, WINDOW *win,WINDOW *fondo ,posicion posAceptar);
+void movimientoCursor(posicion miPosicion, WINDOW * win);
 
 int main()
 {
@@ -26,6 +28,7 @@ int main()
  * Variables
  * ************************************************/
     posicion miPosicion;        //estructura de datos para la posicion del cursos
+    posicion posAceptar;
     int height, width, start_x, start_y, max_height, max_width; //dimensiones de la ventana
     int margen = 2;
     int terminal_h, terminal_w;
@@ -60,9 +63,9 @@ int main()
     start_x = start_y = margen;
     miPosicion.x=start_x;
     miPosicion.y=start_y;
-    filas = width -2;
-    columnas = height -2;
-    matriz = CrearMatriz(filas,columnas);
+    //filas = width -2;
+    //columnas = height -2;
+    //matriz = CrearMatriz(filas,columnas);
 
 
     initscr();
@@ -103,11 +106,11 @@ int main()
     mvwprintw(menu,(max_height/3),(max_width-strlen(msg))/2,"%s",msg);
     mvwprintw(menu,(max_height/3)*2 -1,(max_width-strlen(msg))/2,"filas: ");
     mvwprintw(menu,(max_height/3)*2 -1,(max_width-strlen(msg))/2 + strlen("filas: ") + 3,"%d",filas);
-    
+
 
 /**********************************************************
  * Menu de seleccion
- * *******************************************************/
+ *********************************************************/
 
     //si pulsas arriba sube el numero de filas. SI pulsas abajo baja
     //si pulsas enter aceptas el resultado
@@ -161,38 +164,41 @@ int main()
  * CREACION DEL TABLERO
  * *******************************************************/
 
-
-
     //opciones ya seleccionadas
     //creo el menu
     //win = newwin(max_height, max_width,margen,2 * margen);
+
     win = newwin(filas+2, columnas+2,(max_height-(filas+2))/2, (max_width-(columnas+2))/2);
+    keypad(win,TRUE);
     wbkgd(win,COLOR_PAIR(1));
     wbkgd(fondo,COLOR_PAIR(2));
     box(win,0,0);
     wrefresh(fondo);
     wrefresh(win);
-    //empiezo con el juego de la vida
+
+    matriz = CrearMatriz(filas,columnas);
+    posAceptar.x = (COLS/2)-columnas-3;
+    posAceptar.y = LINES/2 +4;
+    mvwprintw(fondo,posAceptar.y,posAceptar.x,"Aceptar");
+    wrefresh(fondo);
+    recorrerMatrizNcurses(filas,columnas,matriz,win);
+    cambiarCasillaNcurses(matriz,filas,columnas,win,fondo,posAceptar);
+    //wmove(fondo, posAceptar.y, posAceptar.x);
     juegoNcurses(matriz, filas, columnas, win);
-
     wrefresh(win);
-    getchar();
-    //box(stdscr,'|','-');
-
-
-    
-
-    //pruebaImprimir(win);
-    //move(0,0);
-    wrefresh(win);
-
-
+    wrefresh(fondo);
 
 
     getchar();
     endwin();
     return(0);
 }
+
+
+/****************************************************************
+* FUNCIONES AUXILIARES
+******************************************************************/
+
 
 void movimientoCursor(posicion miPosicion, WINDOW * win){
     int c;
@@ -203,7 +209,8 @@ void movimientoCursor(posicion miPosicion, WINDOW * win){
     el bucle refresca la pantalla y mueve el cursor en cada ciclo
     La posicion solo se actualiza si se pulsa alguna de las teclas del switch.
     */
-
+    miPosicion.x=1;
+    miPosicion.y=2;
     do{
         c = wgetch(win);
         switch(c){
@@ -221,20 +228,11 @@ void movimientoCursor(posicion miPosicion, WINDOW * win){
                 break;
         }
 
-        move(miPosicion.y,miPosicion.x);
-        refresh();
+        wmove(win,miPosicion.y,miPosicion.x);
+        wrefresh(win);
     }while(c != 'q');
 }
 
-void pruebaImprimir(WINDOW *win){
-    for(int i=1; i<39;i++){
-        for(int j=1;j<19;j++){
-            mvwaddch(win,j,i,'*');
-            wrefresh(win);
-        }
-        wrefresh(win);
-    }
-}
 
 void print_image(FILE *fptr)
 {
@@ -244,14 +242,16 @@ void print_image(FILE *fptr)
         printf("%s",read_string);
 }
 
+//muestra la matriz por pantalla usando ncurses
 void recorrerMatrizNcurses(int x, int y,char **matriz, WINDOW *win){
-    for(int i=1;i<x;i++){
-        for(int j=1;j<y;j++){
+    for(int i=0;i<x;i++){
+        for(int j=0;j<y;j++){
             //printf("%c",matriz[i][j]);
-            mvwaddch(win,j,i,matriz[i][j]);
-            wrefresh(win);
+            //+1 para no sobreescribir el marco
+            mvwaddch(win,j+1,i+1,matriz[i][j]);
+            //wrefresh(win);
         }
-        printf("\n");
+        //printf("\n");
     }
 }
 
@@ -259,10 +259,87 @@ void juegoNcurses(char **matriz, int filas, int columnas, WINDOW *win){
    int caracter;
 
     while(1){
-        sleep(1);
+        fflush(stdout);
+        napms(DELAY);
         recorrerMatrizNcurses(filas,columnas,matriz,win);
         wrefresh(win);
         juego(matriz,filas,columnas);
     }
     //'q' != (caracter = getchar())
+}
+
+
+
+void cambiarCasillaNcurses(char** matriz, int x, int y, WINDOW *win, WINDOW *fondo, posicion posAceptar){
+    int c;
+    posicion miPosicion;
+    bool triggerHighlight;
+    bool exit = false;
+
+    miPosicion.x=1;
+    miPosicion.y=1;
+    wmove(win,miPosicion.y,miPosicion.x);
+    do{
+        c = wgetch(win);
+        switch(c){
+            case KEY_UP:
+                if(miPosicion.y == y && triggerHighlight){
+                    //miPosicion.y--;
+                    curs_set(1);
+                    wattroff(fondo,A_STANDOUT);
+                    wattroff(fondo,A_BLINK);
+                    mvwprintw(fondo,posAceptar.y,posAceptar.x,"Aceptar");
+                    wrefresh(fondo);
+                    wrefresh(win);
+                    triggerHighlight=false;
+                }else if(miPosicion.y > 1){
+                    miPosicion.y--;
+                }
+                break;
+            case KEY_DOWN:
+                if(miPosicion.y != y){
+                    miPosicion.y++;
+                }else if(miPosicion.y == y){
+                    //miPosicion.y++;
+                    curs_set(0);
+                    wattron(fondo,A_STANDOUT);
+                    wattron(fondo,A_BLINK);
+                    mvwprintw(fondo,posAceptar.y,posAceptar.x,"Aceptar");
+                    wrefresh(fondo);
+                    triggerHighlight=true;
+                }
+                break;
+            case KEY_RIGHT:
+                if(miPosicion.x != x)
+                    miPosicion.x ++;
+                break;
+            case KEY_LEFT:
+                if(miPosicion.x != 1)
+                    miPosicion.x--;
+                break;
+            case 10:
+                if(triggerHighlight){
+                    curs_set(1);
+                    wattroff(fondo,A_STANDOUT);
+                    wattroff(fondo,A_BLINK);
+                    mvwprintw(fondo,posAceptar.y,posAceptar.x,"Aceptar");
+                    wrefresh(fondo);
+                    wrefresh(win);
+                    exit = true;
+                }else{
+                    if(matriz[miPosicion.x-1][miPosicion.y-1] == '-'){
+                    matriz[miPosicion.x-1][miPosicion.y-1] = '*';
+                }else if(matriz[miPosicion.x-1][miPosicion.y-1] == '*'){
+                    matriz[miPosicion.x-1][miPosicion.y-1] = '-';                  
+                }
+                break;
+                }
+        }
+        //wmove(fondo,20,20);
+        //wrefresh(win);
+        wrefresh(fondo);
+        recorrerMatrizNcurses(x,y,matriz,win);
+        wmove(win,miPosicion.y,miPosicion.x);
+        wrefresh(win);
+    }while(!exit);
 }
