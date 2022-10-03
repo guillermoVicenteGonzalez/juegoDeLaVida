@@ -28,10 +28,10 @@ int main()
  * Variables
  * ************************************************/
     posicion miPosicion;        //estructura de datos para la posicion del cursos
-    posicion posAceptar;
+    posicion posAceptar;        //posicion del texto Aceptar en la pantalla "fondo"
     int height, width, start_x, start_y, max_height, max_width; //dimensiones de la ventana
     int margen = 2;
-    int terminal_h, terminal_w;
+    int terminal_h, terminal_w; //dimensiones del terminal
     WINDOW * win; //puntero a ventana. Es la ventana principal
     WINDOW * fondo;
     WINDOW * menu;
@@ -47,8 +47,6 @@ int main()
  * ***********************************************/
     int filas, columnas, max_filas, max_columnas;
     char **matriz;
-    int ysize = 300;
-    int xsize = 300;
     char c;
     int dimensionx, dimensiony;
     char *cadena;
@@ -71,6 +69,7 @@ int main()
     initscr();
     //noecho(); 
 
+    //obtengo las dimensiones del terminal
     getmaxyx(stdscr,terminal_h, terminal_w); 
     if(has_colors() == FALSE){
         endwin();
@@ -129,6 +128,8 @@ int main()
                 }
                 break;
         }
+        //(max_height/3)*2 -1 es decir el segundo tercio de la pantalla +1 (porque - es abajo)
+
         mvwprintw(menu,(max_height/3)*2 -1,(max_width-strlen(msg))/2 + strlen("filas: ") + 3,"%d",filas);
         wrefresh(menu);
     }
@@ -164,10 +165,8 @@ int main()
  * CREACION DEL TABLERO
  * *******************************************************/
 
-    //opciones ya seleccionadas
-    //creo el menu
-    //win = newwin(max_height, max_width,margen,2 * margen);
-
+    //creo una ventana con dimensiones filas +2 y columnas +2.
+    //el +2 es porque hay un margen en cada lado asi que hay dos margenes en cada eje.
     win = newwin(filas+2, columnas+2,(max_height-(filas+2))/2, (max_width-(columnas+2))/2);
     keypad(win,TRUE);
     wbkgd(win,COLOR_PAIR(1));
