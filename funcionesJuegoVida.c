@@ -119,6 +119,13 @@ void juego(char **matriz, int filas, int columnas){
 
 }*/
 
+void freeArrayMemory(char **array, int filas, int columnas){
+	for(int i=0;i<filas;i++){
+		free(array[i]);
+	}
+	free(array);
+}
+
 void juego(char **matriz, int filas, int columnas){
 	char matrizAux[filas][columnas];
 	int cont = 0;

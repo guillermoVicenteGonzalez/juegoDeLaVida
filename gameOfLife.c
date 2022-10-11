@@ -47,15 +47,12 @@ int main(){
 	int rows, cols;
 	char **GOLArray;
 
-   //aux variables
-   int pid;
-
 /***************************************************
  * PROGRAM SETUP
  * ************************************************/
 
 
-	rows = 5;
+	rows = 10;
 	cols = 5;
 	initscr();
    clear();
@@ -192,7 +189,7 @@ int main(){
 	   		}
 
    	}
-   	//mvwprintw(background,0,0,"x:%d y:%d %c",cursPos.x,cursPos.y,GOLArray[cursPos.y-1][cursPos.x-1]);
+   	mvwprintw(background,0,0,"x:%d y:%d %c",cursPos.x,cursPos.y,GOLArray[cursPos.y-1][cursPos.x-1]);
    	wrefresh(background);
    	showArrayNcurses(win,GOLArray,rows,cols);
    	wmove(win,cursPos.y,cursPos.x);
@@ -200,8 +197,13 @@ int main(){
    }while(!exit);
 
    curs_set(0);
+   wprintw(background,"Accept");
+   wprintw(background,"Cancel");
+   wrefresh(background);
    playGameNcurses(GOLArray, rows,cols,win,500);
     getchar();
     endwin();
+    freeArrayMemory(GOLArray,rows,cols);
     return 1;
 }
+

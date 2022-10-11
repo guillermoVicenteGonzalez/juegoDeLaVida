@@ -19,7 +19,11 @@ void showArrayNcurses(WINDOW *win, char **array, int rows, int cols){
 	for(int i=0;i<rows;i++){
 		for(int j=0;j<cols;j++){
 			//remember: i=rows == Y axis, not x axis
-			mvwaddch(win,i+1,j+1,array[i][j]);
+			if(array[i][j] == '*'){
+				mvwaddch(win,i+1,j+1,ACS_DIAMOND);
+			}else{
+				mvwaddch(win,i+1,j+1,array[i][j]);
+			}
 		}
 	}
 
@@ -125,21 +129,18 @@ position selectionMenu(WINDOW *win, int win_width, int win_height, int margin, i
 
 void playGameNcurses(char **array, int rows, int cols, WINDOW *win, int delay){
    int caracter;
-   int pid;
 
-   pid=fork();
     while(1){
         fflush(stdout);
         napms(delay);
-        showArrayNcurses(win,array,rows,cols);
-        //recorrerMatrizNcurses(rows,cols,array,win);
+        //recorrerMatrizNcurses(filas,columnas,matriz,win);
+         showArrayNcurses(win,array,rows,cols);
         wrefresh(win);
         juego(array,rows,cols);
     }
-    //'q' != (caracter = getchar())
 }
 
-void createMenu(WINDOW *menu, int max_w, int max_h,)
+//void createMenu(WINDOW *menu, int max_w, int max_h,)
 
 int checkAlive(char **aray, int rows, int cols){
 
