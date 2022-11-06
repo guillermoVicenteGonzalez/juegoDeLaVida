@@ -1,5 +1,11 @@
-game: gameOfLife.c funcionesJuegoVida.o ncursesAuxFunctions.o
-	gcc gameOfLife.c funcionesJuegoVida.o ncursesAuxFunctions.o -o game -lcurses
+game: gameOfLife.c funcionesJuegoVida.o ncursesAuxFunctions.o ipcFunctions.o
+	gcc gameOfLife.c funcionesJuegoVida.o ncursesAuxFunctions.o ipcFunctions.o -o game -lcurses
+
+process: process.c
+	gcc process.c -o process
+
+ipcFunctions.o: ipcFunctions.c ipcFunctions.h
+	gcc -c ipcFunctions.c ipcFunctions.h
 
 programa: pruebaNcurses.c funcionesJuegoVida.o
 	gcc pruebaNcurses.c funcionesJuegoVida.o -o programa -lcurses
